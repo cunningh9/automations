@@ -418,6 +418,188 @@ def place_jungle_temple(world, heights, cx):
                 world[cx][h - y_off] = AIR
 
 
+def place_castle(world, heights, cx):
+    """Very large stone castle: twin towers (12 tall), curtain walls (5 tall), central keep (9 tall)."""
+    hc = heights[cx]
+
+    def fill(x1, x2, h_blocks):
+        for x in range(max(0, x1), min(W, x2 + 1)):
+            h = heights[x]
+            for y in range(max(0, hc - h_blocks), min(H - 1, max(hc, h) + 1)):
+                world[x][y] = COBBLE
+
+    def battlements(x1, x2, h_blocks):
+        y = hc - h_blocks - 1
+        if y < 0:
+            return
+        for x in range(max(0, x1), min(W, x2 + 1)):
+            if x % 2 == 0 and 0 <= x < W and world[x][y] == AIR:
+                world[x][y] = COBBLE
+
+    # Left tower
+    fill(cx - 12, cx - 9, 12)
+    battlements(cx - 12, cx - 9, 12)
+    for y_off in [4, 8]:
+        wy = hc - y_off
+        if wy >= 0:
+            for wx in [cx - 11, cx - 10]:
+                if 0 <= wx < W:
+                    world[wx][wy] = GLASS
+
+    # Right tower
+    fill(cx + 9, cx + 12, 12)
+    battlements(cx + 9, cx + 12, 12)
+    for y_off in [4, 8]:
+        wy = hc - y_off
+        if wy >= 0:
+            for wx in [cx + 10, cx + 11]:
+                if 0 <= wx < W:
+                    world[wx][wy] = GLASS
+
+    # Left curtain wall
+    fill(cx - 8, cx - 5, 5)
+    battlements(cx - 8, cx - 5, 5)
+
+    # Right curtain wall
+    fill(cx + 5, cx + 8, 5)
+    battlements(cx + 5, cx + 8, 5)
+
+    # Central keep: solid walls, hollow interior
+    for x in range(max(0, cx - 4), min(W, cx + 5)):
+        is_wall = (x == cx - 4 or x == cx + 4)
+        for y_off in range(1, 10):
+            wy = hc - y_off
+            if wy < 0:
+                continue
+            if is_wall:
+                world[x][wy] = COBBLE
+            elif y_off == 1:
+                world[x][wy] = STONE
+    # Keep roof + battlements
+    if hc - 10 >= 0:
+        for x in range(max(0, cx - 4), min(W, cx + 5)):
+            world[x][hc - 10] = COBBLE
+    if hc - 11 >= 0:
+        for x in range(max(0, cx - 4), min(W, cx + 5)):
+            if x % 2 == 0 and world[x][hc - 11] == AIR:
+                world[x][hc - 11] = COBBLE
+    # Keep windows
+    for y_off in [3, 6]:
+        wy = hc - y_off
+        if wy >= 0:
+            for wx in [cx - 3, cx, cx + 3]:
+                if 0 <= wx < W:
+                    world[wx][wy] = GLASS
+    # Gate entrance
+    for gx in range(max(0, cx - 1), min(W, cx + 2)):
+        for y_off in [1, 2]:
+            wy = hc - y_off
+            if wy >= 0:
+                world[gx][wy] = AIR
+    if hc - 3 >= 0:
+        for gx in range(max(0, cx - 1), min(W, cx + 2)):
+            if world[gx][hc - 3] == COBBLE:
+                world[gx][hc - 3] = PLANKS
+
+
+def place_watchtower(world, heights, cx):
+    """Tall cobblestone watchtower with battlements and windows."""
+    hc = heights[cx]
+    hw = 2
+    tower_h = 11
+    for x in range(max(0, cx - hw), min(W, cx + hw + 1)):
+        h = heights[x]
+        for y in range(max(0, hc - tower_h), min(H - 1, max(hc, h) + 1)):
+            world[x][y] = COBBLE
+    batt_y = hc - tower_h - 1
+    if batt_y >= 0:
+        for x in range(max(0, cx - hw), min(W, cx + hw + 1)):
+            if x % 2 == 0 and world[x][batt_y] == AIR:
+                world[x][batt_y] = COBBLE
+    for y_off in [4, 7]:
+        wy = hc - y_off
+        if wy >= 0 and 0 <= cx < W:
+            world[cx][wy] = GLASS
+    if hc - 1 >= 0 and 0 <= cx < W:
+        world[cx][hc - 1] = AIR
+
+
+def place_barn(world, heights, cx):
+    """Large wooden barn with gambrel roof and wide door."""
+    hc = heights[cx]
+    hw = 6
+    wall_h = 4
+    for x in range(max(0, cx - hw), min(W, cx + hw + 1)):
+        h = heights[x]
+        is_corner = (x == cx - hw or x == cx + hw)
+        for y_off in range(1, wall_h + 1):
+            wy = hc - y_off
+            if wy >= 0:
+                world[x][wy] = OAK_LOG if is_corner else PLANKS
+        for y in range(hc + 1, min(H - 1, h + 1)):
+            world[x][y] = OAK_LOG if is_corner else PLANKS
+    for i, half in enumerate([hw, hw - 2, hw - 4, hw - 5]):
+        if half < 0:
+            break
+        ry = hc - wall_h - 1 - i
+        if ry < 0:
+            break
+        for x in range(max(0, cx - half), min(W, cx + half + 1)):
+            if world[x][ry] == AIR:
+                world[x][ry] = OAK_LOG
+    for gx in range(max(0, cx - 1), min(W, cx + 2)):
+        for y_off in [1, 2, 3]:
+            wy = hc - y_off
+            if wy >= 0:
+                world[gx][wy] = AIR
+    for wx in [cx - hw + 2, cx + hw - 2]:
+        if 0 <= wx < W:
+            wy = hc - wall_h
+            if wy >= 0:
+                world[wx][wy] = GLASS
+
+
+def place_lighthouse(world, heights, cx):
+    """Tall lighthouse with a wide base, narrow shaft, glass lamp room, and striped walls."""
+    hc = heights[cx]
+    for y_off in range(1, 7):
+        wy = hc - y_off
+        if wy >= 0:
+            for x in range(max(0, cx - 2), min(W, cx + 3)):
+                world[x][wy] = COBBLE
+    for y_off in range(7, 15):
+        wy = hc - y_off
+        if wy >= 0:
+            for x in range(max(0, cx - 1), min(W, cx + 2)):
+                world[x][wy] = COBBLE if y_off % 3 != 0 else PLANKS
+    for y_off in range(15, 17):
+        wy = hc - y_off
+        if wy >= 0:
+            for x in range(max(0, cx - 1), min(W, cx + 2)):
+                world[x][wy] = GLASS
+    if hc - 17 >= 0:
+        for x in range(max(0, cx - 1), min(W, cx + 2)):
+            world[x][hc - 17] = COBBLE
+    if hc - 7 >= 0:
+        for x in range(max(0, cx - 2), min(W, cx + 3)):
+            if world[x][hc - 7] == AIR:
+                world[x][hc - 7] = COBBLE
+    if hc - 1 >= 0 and 0 <= cx < W:
+        world[cx][hc - 1] = AIR
+    for x in range(max(0, cx - 2), min(W, cx + 3)):
+        h = heights[x]
+        for y in range(hc + 1, min(H - 1, h + 1)):
+            world[x][y] = COBBLE
+
+
+STRUCTURES = {
+    "castle":     place_castle,
+    "watchtower": place_watchtower,
+    "barn":       place_barn,
+    "lighthouse": place_lighthouse,
+}
+
+
 # ── World building ────────────────────────────────────────────────────────────
 # ── Renderer ──────────────────────────────────────────────────────────────────
 def render(world, heights, biome, tod, sky_objs, entities):
@@ -549,21 +731,33 @@ def build_world_with_params(biome=None, tod=None, forced_entities=None):
                 world[x][y] = LAVA
 
     # ── buildings ──
-    num_buildings = random.randint(1, 2)
-    building_xs = set()
-    for _ in range(num_buildings):
-        bx = random.randint(12, W - 14)
-        if any(abs(bx - ox) < 12 for ox in building_xs):
-            continue
-        building_xs.add(bx)
-        if biome == "desert":
-            place_temple(world, heights, bx)
-        elif biome == "snow":
-            place_cabin(world, heights, bx)
-        elif biome == "jungle":
-            place_jungle_temple(world, heights, bx)
-        else:
-            place_house(world, heights, bx)
+    forced_structs = [e for e in (forced_entities or []) if e in STRUCTURES]
+    if forced_structs:
+        struct_xs = []
+        for name in forced_structs:
+            margin = 14 if name == "castle" else 10
+            for _ in range(30):
+                bx = random.randint(margin, W - margin - 1)
+                if not any(abs(bx - ox) < 18 for ox in struct_xs):
+                    struct_xs.append(bx)
+                    STRUCTURES[name](world, heights, bx)
+                    break
+    else:
+        num_buildings = random.randint(1, 2)
+        building_xs = set()
+        for _ in range(num_buildings):
+            bx = random.randint(12, W - 14)
+            if any(abs(bx - ox) < 12 for ox in building_xs):
+                continue
+            building_xs.add(bx)
+            if biome == "desert":
+                place_temple(world, heights, bx)
+            elif biome == "snow":
+                place_cabin(world, heights, bx)
+            elif biome == "jungle":
+                place_jungle_temple(world, heights, bx)
+            else:
+                place_house(world, heights, bx)
 
     # ── trees / cacti ──
     th_min, th_max, log, leaves, shape, target = TREE_PARAMS[biome]
@@ -669,7 +863,9 @@ def generate_scene(biome=None, tod=None, forced_entities=None, scale=3, open_fil
     img  = img.resize((w * scale, h * scale), Image.NEAREST)
 
     draw  = ImageDraw.Draw(img)
-    mobs  = ", ".join(sorted({e[0] for e in entities})) or "none"
+    sprite_names = {e[0] for e in entities}
+    struct_names = {e for e in (forced_entities or []) if e in STRUCTURES}
+    mobs  = ", ".join(sorted(sprite_names | struct_names)) or "none"
     label = f"  Biome: {biome.upper()}   |   {tod.upper()}   |   {mobs}  "
     try:
         bbox = draw.textbbox((0, 0), label)

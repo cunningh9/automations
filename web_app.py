@@ -10,12 +10,12 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from flask import Flask, render_template_string, request, jsonify
-from minecraft_scene import BIOMES, TIMES, SPRITES, generate_scene
+from minecraft_scene import BIOMES, TIMES, SPRITES, STRUCTURES, generate_scene
 
 app = Flask(__name__)
 
 # ── All selectable entities ────────────────────────────────────────────────────
-ALL_ENTITIES = sorted(SPRITES.keys())
+ALL_ENTITIES = sorted(list(SPRITES.keys()) + list(STRUCTURES.keys()))
 
 # ── HTML template ─────────────────────────────────────────────────────────────
 HTML = """<!doctype html>
@@ -384,6 +384,10 @@ MOB_ICONS = {
     "cow":       "🐄",
     "chicken":   "🐔",
     "spider":    "🕷️",
+    "castle":     "🏰",
+    "watchtower": "🗼",
+    "barn":       "🏚",
+    "lighthouse": "🔦",
 }
 
 import json
