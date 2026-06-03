@@ -295,6 +295,9 @@ HTML = """<!doctype html>
 <div class="result-card" id="resultCard">
   <div class="result-meta" id="resultMeta"></div>
   <img id="resultImg" src="" alt="Generated scene">
+  <a id="downloadBtn" href="#" download="scene.png" style="display:none; margin-top:14px; display:none;">
+    <button class="btn-small" style="padding:8px 18px; font-size:0.9rem;">⬇ Download PNG</button>
+  </a>
 </div>
 
 <script>
@@ -345,12 +348,16 @@ async function generate() {
       return;
     }
 
-    document.getElementById('resultImg').src = 'data:image/png;base64,' + data.image;
+    const imgSrc = 'data:image/png;base64,' + data.image;
+    document.getElementById('resultImg').src = imgSrc;
     document.getElementById('resultMeta').innerHTML =
       `Biome: <span>${data.biome.toUpperCase()}</span> &nbsp;|&nbsp; ` +
       `Time: <span>${data.tod.toUpperCase()}</span> &nbsp;|&nbsp; ` +
-      `Entities: <span>${data.mobs}</span> &nbsp;|&nbsp; ` +
-      `Saved: <span>${data.filename}</span>`;
+      `Entities: <span>${data.mobs}</span>`;
+    const dl = document.getElementById('downloadBtn');
+    dl.href = imgSrc;
+    dl.download = data.filename;
+    dl.style.display = 'inline-block';
     resultCard.classList.add('visible');
     resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (err) {
