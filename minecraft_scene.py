@@ -774,6 +774,8 @@ def build_world_with_params(biome=None, tod=None, forced_entities=None):
         h = heights[x]
         if world[x][h] != surf:
             continue
+        if h - 1 >= 0 and world[x][h - 1] != AIR:
+            continue
         if shape == "cactus":
             ch = random.randint(2, 4)
             if any(h - i - 1 < 0 or h - i - 1 >= H for i in range(ch)):
