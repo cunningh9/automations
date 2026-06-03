@@ -738,6 +738,8 @@ def build_world_with_params(biome=None, tod=None, forced_entities=None):
             margin = 14 if name == "castle" else 10
             for _ in range(30):
                 bx = random.randint(margin, W - margin - 1)
+                if heights[bx] > water_y:
+                    continue
                 if not any(abs(bx - ox) < 18 for ox in struct_xs):
                     struct_xs.append(bx)
                     STRUCTURES[name](world, heights, bx)
@@ -747,6 +749,8 @@ def build_world_with_params(biome=None, tod=None, forced_entities=None):
         building_xs = set()
         for _ in range(num_buildings):
             bx = random.randint(12, W - 14)
+            if heights[bx] > water_y:
+                continue
             if any(abs(bx - ox) < 12 for ox in building_xs):
                 continue
             building_xs.add(bx)
